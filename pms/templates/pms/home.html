@@ -1,0 +1,35 @@
+{% extends 'pms/base.html' %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to Pharmacy Management System</h1>
+    <p class="lead">A simple system to manage drugs inventory and prescriptions.</p>
+    <hr class="my-4">
+    {% if user.is_authenticated %}
+    <p>You are logged in as {{ user.username }}.</p>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Drugs</h5>
+                    <p class="card-text">Add, view, and manage drugs in the inventory.</p>
+                    <a href="{% url 'add_drug' %}" class="btn btn-primary">Go to Drugs</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Prescriptions</h5>
+                    <p class="card-text">Create and manage patient prescriptions.</p>
+                    <a href="{% url 'add_prescription' %}" class="btn btn-primary">Go to Prescriptions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p>Please login to access the system.</p>
+    <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Login</a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'pms/base.html' %}
+
+{% block content %}
+<h2>Manage Drugs</h2>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% endif %}
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Add New Drug</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Drug Name</label>
+                        <input type="text" name="name" id="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input type="number" name="quantity" id="quantity" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiration_date" class="form-label">Expiration Date (YYYY-MM-DD)</label>
+                        <input type="date" name="expiration_date" id="expiration_date" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Drug</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Drug Inventory</h3>
+            </div>
+            <div class="card-body">
+                {% if drugs %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Quantity</th>
+                                <th>Expiration Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for drug in drugs %}
+                            <tr>
+                                <td>{{ drug.name }}</td>
+                                <td>{{ drug.quantity }}</td>
+                                <td>{{ drug.expiration_date|default:"Not specified" }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#updateModal{{ drug.id }}">
+                                        Update Quantity
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ drug.id }}">
+                                        Delete
+                                    </button>
+                                    
+                                    <!-- Update Quantity Modal -->
+                                    <div class="modal fade" id="updateModal{{ drug.id }}" tabindex="-1" aria-labelledby="updateModalLabel{{ drug.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="updateModalLabel{{ drug.id }}">Update {{ drug.name }} Quantity</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form method="post" action="{% url 'update_drug_quantity' drug.id %}">
+                                                        {% csrf_token %}
+                                                        <div class="mb-3">
+                                                            <label for="quantity{{ drug.id }}" class="form-label">Quantity</label>
+                                                            <input type="number" name="quantity" id="quantity{{ drug.id }}" class="form-control" min="1" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="action" id="add{{ drug.id }}" value="add" checked>
+                                                                <label class="form-check-label" for="add{{ drug.id }}">
+                                                                    Add to stock
+                                                                </label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input" type="radio" name="action" id="subtract{{ drug.id }}" value="subtract">
+                                                                <label class="form-check-label" for="subtract{{ drug.id }}">
+                                                                    Remove from stock
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary">Update</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Delete Modal -->
+                                    <div class="modal fade" id="deleteModal{{ drug.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ drug.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ drug.id }}">Delete {{ drug.name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete this drug?</p>
+                                                    <form method="post" action="{% url 'delete_drug' drug.id %}">
+                                                        {% csrf_token %}
+                                                        <div class="mb-3">
+                                                            <label for="remove_quantity{{ drug.id }}" class="form-label">Quantity to Remove (leave empty to delete all)</label>
+                                                            <input type="number" name="remove_quantity" id="remove_quantity{{ drug.id }}" class="form-control" min="1" max="{{ drug.quantity }}">
+                                                            <small class="text-muted">Current quantity: {{ drug.quantity }}</small>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p>No drugs available in the inventory.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

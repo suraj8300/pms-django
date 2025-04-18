@@ -1,0 +1,87 @@
+{% extends 'pms/base.html' %}
+
+{% block content %}
+<h2>Manage Prescriptions</h2>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3>Create New Prescription</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="drug" class="form-label">Select Drug</label>
+                        <select name="drug" id="drug" class="form-select" required>
+                            <option value="">-- Select a drug --</option>
+                            {% for drug in drugs %}
+                            <option value="{{ drug.id }}">{{ drug.name }} (Available: {{ drug.quantity }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="patient_name" class="form-label">Patient Name</label>
+                        <input type="text" name="patient_name" id="patient_name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prescribed_amount" class="form-label">Prescribed Amount</label>
+                        <input type="number" name="prescribed_amount" id="prescribed_amount" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Prescription</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Prescription History</h3>
+            </div>
+            <div class="card-body">
+                {% if prescriptions %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Drug</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in prescriptions %}
+                            <tr>
+                                <td>{{ prescription.patient_name }}</td>
+                                <td>{{ prescription.drug.name }}</td>
+                                <td>{{ prescription.prescribed_amount }}</td>
+                                <td>{{ prescription.date|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'delete_prescription' prescription.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p>No prescriptions found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
